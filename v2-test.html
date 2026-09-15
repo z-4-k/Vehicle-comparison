@@ -95,6 +95,30 @@ function propertiesForType(type,mode='table'){
     return true;
   }).sort((a,b)=>(Number(metaOne(a,'sort_order'))||9999)-(Number(metaOne(b,'sort_order'))||9999)||a.label.localeCompare(b.label));
 }
+function renderTypeOptions(){
+  const sel=$('typeFilter');
+  const previous=sel.value||'vehicle';
+  const counts=new Map();
+  for(const o of S.objects){if(o.deleted_at)continue;counts.set(o.object_type,(counts.get(o.object_type)||0)+1)}
+  const labelFor=t=>({
+    vehicle:'Vehicles',build:'Builds',part:'Parts',mod:'Mods',person:'People',event:'Events',run:'Runs',
+    racetrack_facility:'Racetrack facilities',track_layout:'Track layouts',track_segment:'Track segments',
+    track_route:'Track routes',course_configuration:'Course configurations',observation:'Observations',
+    telemetry_stream:'Telemetry streams',property:'Properties',unit:'Units',relation_type:'Relation types',
+    manufacturer:'Manufacturers',measurement_method:'Measurement methods',validation_status:'Validation statuses',
+    race_mode:'Race modes',direction_type:'Directions',price_type:'Price types',region:'Regions',
+    svg_asset:'SVG assets',geo_asset:'Geo assets',calculation_rule:'Calculation rules'
+  }[t]||t.replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase()));
+  const preferred=['vehicle','build','part','mod','person','event','run','racetrack_facility','track_layout','track_segment','track_route','course_configuration','observation','telemetry_stream','property','unit','relation_type','manufacturer','measurement_method','validation_status','race_mode','direction_type','price_type','region','svg_asset','geo_asset','calculation_rule'];
+  const types=[...counts.keys()].sort((a,b)=>{
+    const ia=preferred.indexOf(a),ib=preferred.indexOf(b);
+    if(ia>=0||ib>=0)return (ia<0?999:ia)-(ib<0?999:ib);
+    return labelFor(a).localeCompare(labelFor(b));
+  });
+  sel.innerHTML=`<option value="all">All object types (${S.objects.filter(o=>!o.deleted_at).length})</option>`+
+    types.map(t=>`<option value="${esc(t)}">${esc(labelFor(t))} (${counts.get(t)})</option>`).join('');
+  sel.value=types.includes(previous)||previous==='all'?previous:(types.includes('vehicle')?'vehicle':'all');
+}
 function tableColumns(){
   const type=$('typeFilter').value;const props=type==='all'?[]:propertiesForType(type,'table');
   if(type==='vehicle'){

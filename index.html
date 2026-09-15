@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vehicle Performance Benchmarks</title>
+<style>
+:root{
+  --bg:#f5f7fa; --card:#fff; --text:#111827; --muted:#6b7280; --line:#e5e7eb;
+  --accent:#111827; --head:#111827; --headText:#fff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1700px;margin:0 auto;padding:18px}
+h1{font-size:24px;margin:0 0 4px}
+.sub{color:var(--muted);margin-bottom:14px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+input,select,button{font:inherit;border:1px solid #d1d5db;border-radius:8px;background:#fff;padding:8px 10px}
+input{min-width:260px;flex:1}
+button{cursor:pointer}
+button:hover{background:#f3f4f6}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
+.legend span{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:white;font-size:12px}
+.dot{width:9px;height:9px;border-radius:50%}
+.table-card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.table-scroll{overflow:auto;max-height:76vh}
+table{width:100%;border-collapse:separate;border-spacing:0;min-width:1350px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{position:sticky;top:0;z-index:2;background:var(--head);color:var(--headText);text-align:left;white-space:nowrap;cursor:pointer;user-select:none}
+th .sort{opacity:.55;margin-left:5px}
+tr:hover td{background-color:rgba(17,24,39,.035)}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.small{font-size:12px;color:#374151}
+td.vehicle{font-weight:650;min-width:220px}
+.badge{display:inline-block;padding:3px 7px;border-radius:999px;font-weight:650;font-size:12px;white-space:nowrap}
+.badge.ev4{background:#111827;color:#fff}
+.badge.ev3{background:#dcfce7;color:#166534}
+.badge.ev2{background:#cffafe;color:#155e75}
+.badge.hy4{background:#f3e8ff;color:#7e22ce}
+.badge.hy3{background:#dbeafe;color:#1d4ed8}
+.badge.hy1{background:#e0e7ff;color:#3730a3}
+.badge.ice{background:#fee2e2;color:#991b1b}
+.badge.mhev{background:#fce7f3;color:#9d174d}
+.badge.moto{background:#ffedd5;color:#9a3412}
+.badge.bio{background:#f5e8db;color:#78350f}
+.badge.other{background:#f3f4f6;color:#374151}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+.footer{color:var(--muted);font-size:12px;margin-top:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+@media(max-width:700px){.wrap{padding:10px}h1{font-size:20px}.toolbar{padding:9px}input{min-width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="title">Vehicle Performance Benchmarks</h1>
+  <div class="sub"><span id="updated"></span> · Click any column header to sort. Default: fastest 0–100 first.</div>
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="Search vehicle, status, powertrain…">
+    <select id="powertrain"><option value="">All powertrains</option></select>
+    <select id="status"><option value="">All statuses</option></select>
+    <button id="reset">Reset</button>
+    <button id="csv">Export filtered CSV</button>
+  </div>
+  <div class="legend">
+    <span><i class="dot" style="background:#111827"></i>4-motor EV</span>
+    <span><i class="dot" style="background:#16a34a"></i>3-motor EV</span>
+    <span><i class="dot" style="background:#06b6d4"></i>2-motor EV</span>
+    <span><i class="dot" style="background:#9333ea"></i>4-motor hybrid</span>
+    <span><i class="dot" style="background:#2563eb"></i>3-motor hybrid</span>
+    <span><i class="dot" style="background:#4f46e5"></i>1-motor hybrid</span>
+    <span><i class="dot" style="background:#dc2626"></i>ICE</span>
+    <span><i class="dot" style="background:#ea580c"></i>Motorcycle ICE</span>
+    <span><i class="dot" style="background:#92400e"></i>Biological</span>
+  </div>
+  <div class="table-card"><div class="table-scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div></div>
+  <div class="footer"><span id="count"></span><span id="note"></span></div>
+</div>
+<script src="data.js"></script>
+<script>
+const D=window.BENCHMARK_DATA;
+let rows=[...D.rows], sortKey=D.meta.defaultSort.column, sortDir=D.meta.defaultSort.direction;
+const $=id=>document.getElementById(id);
+$("title").textContent=D.meta.title;
+$("updated").textContent="Updated "+D.meta.updated;
+$("note").textContent=D.meta.note;
+
+function clsPower(p=""){
+  if(p.includes("EV · 4-motor")) return "ev4";
+  if(p.includes("EV · 3-motor")) return "ev3";
+  if(p.includes("EV · 2-motor")) return "ev2";
+  if(p.includes("Hybrid · 4-motor")) return "hy4";
+  if(p.includes("Hybrid · 3-motor")) return "hy3";
+  if(p.includes("Hybrid · 1-motor")) return "hy1";
+  if(p.includes("Motorcycle")) return "moto";
+  if(p.includes("Biological")) return "bio";
+  if(p.includes("MHEV")) return "mhev";
+  if(p.includes("ICE")) return "ice";
+  return "other";
+}
+function fmt(v,key){
+  if(v===null||v===undefined||v==="") return "—";
+  if(typeof v==="number"){
+    if(key==="hp/kg") return v.toFixed(3);
+    if(key==="HUF/hp") return Math.round(v).toLocaleString("en-US");
+    if(key==="Price M Ft") return v.toLocaleString("en-US",{maximumFractionDigits:3});
+    if(key==="0-100") return v.toLocaleString("en-US",{maximumFractionDigits:2});
+    return v.toLocaleString("en-US",{maximumFractionDigits:2});
+  }
+  return String(v);
+}
+function sortValue(v,key){
+  if(v===null||v===undefined||v===""||v==="N/A") return sortDir==="asc" ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+  if(typeof v==="number") return v;
+  const n=Number(v); if(!Number.isNaN(n)) return n;
+  return String(v).toLowerCase();
+}
+function filtered(){
+  const q=$("search").value.trim().toLowerCase(), p=$("powertrain").value, s=$("status").value;
+  return rows.filter(r=>{
+    if(p && r.Powertrain!==p) return false;
+    if(s && r.Status!==s) return false;
+    if(!q) return true;
+    return Object.values(r).some(v=>String(v??"").toLowerCase().includes(q));
+  }).sort((a,b)=>{
+    const A=sortValue(a[sortKey],sortKey), B=sortValue(b[sortKey],sortKey);
+    if(A<B) return sortDir==="asc"?-1:1;
+    if(A>B) return sortDir==="asc"?1:-1;
+    return 0;
+  });
+}
+function renderHead(){
+  const tr=document.createElement("tr");
+  D.columns.forEach(c=>{
+    const th=document.createElement("th");
+    th.innerHTML=c.label+(c.key===sortKey?` <span class="sort">${sortDir==="asc"?"▲":"▼"}</span>`:"");
+    th.onclick=()=>{ if(sortKey===c.key) sortDir=sortDir==="asc"?"desc":"asc"; else {sortKey=c.key;sortDir="asc"} render(); };
+    tr.appendChild(th);
+  });
+  const thead=$("tbl").querySelector("thead"); thead.innerHTML=""; thead.appendChild(tr);
+}
+function render(){
+  renderHead();
+  const data=filtered(), tb=$("tbl").querySelector("tbody"); tb.innerHTML="";
+  data.forEach(r=>{
+    const tr=document.createElement("tr");
+    D.columns.forEach(c=>{
+      const td=document.createElement("td"), v=r[c.key];
+      if(c.key==="Vehicle") td.className="vehicle";
+      else if(["kg","hp","hp/kg","0-100","Vmax","Price M Ft","HUF/hp"].includes(c.key)) td.className="num";
+      else td.className="small";
+      if(c.key==="Powertrain") td.innerHTML=`<span class="badge ${clsPower(v)}">${fmt(v,c.key)}</span>`;
+      else td.textContent=fmt(v,c.key);
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  $("count").textContent=`Showing ${data.length} of ${rows.length} entries`;
+}
+function fillSelect(id,key){
+  [...new Set(rows.map(r=>r[key]).filter(Boolean))].sort().forEach(v=>{
+    const o=document.createElement("option");o.value=v;o.textContent=v;$(id).appendChild(o);
+  });
+}
+fillSelect("powertrain","Powertrain"); fillSelect("status","Status");
+["search","powertrain","status"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",render));
+$("reset").onclick=()=>{$("search").value="";$("powertrain").value="";$("status").value="";sortKey=D.meta.defaultSort.column;sortDir=D.meta.defaultSort.direction;render()};
+$("csv").onclick=()=>{
+  const d=filtered(), esc=x=>`"${String(x??"").replaceAll('"','""')}"`;
+  const csv=[D.columns.map(c=>esc(c.label)).join(","),...d.map(r=>D.columns.map(c=>esc(r[c.key])).join(","))].join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="vehicle-benchmarks.csv";a.click();URL.revokeObjectURL(a.href);
+};
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+name: Publish app from Supabase
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: vehicle-comparison-publisher
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      has_release: ${{ steps.release.outputs.has_release }}
+      changed: ${{ steps.release.outputs.changed }}
+      should_deploy: ${{ steps.release.outputs.should_deploy }}
+      version: ${{ steps.release.outputs.version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Fetch current release from Supabase
+        id: release
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -euo pipefail
+
+          OLD_SHA=""
+          if [ -f v2-current.html ]; then
+            OLD_SHA="$(sha256sum v2-current.html | awk '{print $1}')"
+          fi
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --get \
+            "$SUPABASE_URL/rest/v1/app_releases" \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            -H "Accept: application/json" \
+            --data-urlencode "select=id,version,html,sha256,size_bytes,created_at" \
+            --data-urlencode "status=eq.ready" \
+            --data-urlencode "order=created_at.desc" \
+            --data-urlencode "limit=1" \
+            -o /tmp/release.json
+
+          if [ "$(jq 'length' /tmp/release.json)" -eq 0 ]; then
+            echo "No ready release found."
+            echo "has_release=false" >> "$GITHUB_OUTPUT"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          python3 - <<'PY'
+          import json
+
+          with open('/tmp/release.json', 'r', encoding='utf-8') as f:
+              release = json.load(f)[0]
+
+          with open('v2-current.html', 'w', encoding='utf-8', newline='') as f:
+              f.write(release['html'])
+          PY
+
+          EXPECTED_SHA="$(jq -r '.[0].sha256' /tmp/release.json)"
+          EXPECTED_SIZE="$(jq -r '.[0].size_bytes' /tmp/release.json)"
+          ACTUAL_SHA="$(sha256sum v2-current.html | awk '{print $1}')"
+          ACTUAL_SIZE="$(wc -c < v2-current.html | tr -d ' ')"
+          VERSION="$(jq -r '.[0].version' /tmp/release.json)"
+
+          if [ "$EXPECTED_SHA" != "$ACTUAL_SHA" ]; then
+            echo "SHA-256 verification failed."
+            echo "Expected: $EXPECTED_SHA"
+            echo "Actual:   $ACTUAL_SHA"
+            exit 1
+          fi
+
+          if [ "$EXPECTED_SIZE" != "$ACTUAL_SIZE" ]; then
+            echo "Size verification failed."
+            echo "Expected: $EXPECTED_SIZE"
+            echo "Actual:   $ACTUAL_SIZE"
+            exit 1
+          fi
+
+          echo "has_release=true" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          if [ "$OLD_SHA" = "$ACTUAL_SHA" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            fi
+            echo "Already on release $VERSION."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "New release: $VERSION"
+          fi
+
+      - name: Commit new release
+        if: steps.release.outputs.changed == 'true'
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add v2-current.html
+          git commit -m "Publish ${RELEASE_VERSION}"
+          git push origin HEAD:main
+
+      - name: Configure GitHub Pages
+        if: steps.release.outputs.should_deploy == 'true'
+        uses: actions/configure-pages@v5
+
+      - name: Prepare Pages artifact
+        if: steps.release.outputs.should_deploy == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          rsync -a \
+            --exclude='.git' \
+            --exclude='_site' \
+            ./ _site/
+
+      - name: Upload GitHub Pages artifact
+        if: steps.release.outputs.should_deploy == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    if: needs.build.outputs.should_deploy == 'true'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

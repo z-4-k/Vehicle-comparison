@@ -1,52 +1,249 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vehicle Performance Benchmarks</title>
-<style>
-:root{--bg:#f5f7fa;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--head:#111827;--ok:#166534;--danger:#991b1b}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.42 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-.wrap{max-width:1900px;margin:auto;padding:18px}h1{font-size:24px;margin:0 0 4px}.sub{color:var(--muted);margin-bottom:12px}.live{font-weight:750;color:var(--ok)}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
-input,select,button{font:inherit;border:1px solid #d1d5db;border-radius:8px;background:#fff;padding:8px 10px}input{min-width:260px;flex:1}button{cursor:pointer}.filters{display:flex;gap:8px;flex-wrap:wrap}
-.table-card{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}.table-scroll{overflow:auto;max-height:76vh}table{width:100%;border-collapse:separate;border-spacing:0;min-width:1200px}
-th,td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}th{position:sticky;top:0;z-index:2;background:var(--head);color:#fff;text-align:left;white-space:nowrap;cursor:pointer}tbody tr{cursor:pointer}tbody tr:hover td{background:#f8fafc}
-td.num{text-align:right;white-space:nowrap}td.identity{font-weight:650;white-space:nowrap}td.model{min-width:220px}td.text{font-size:12px;color:#374151}
-details.columns{position:relative}details.columns>summary{list-style:none;cursor:pointer;border:1px solid #d1d5db;border-radius:8px;background:#fff;padding:8px 10px}.column-pop{position:absolute;right:0;top:42px;z-index:20;width:min(420px,92vw);max-height:65vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 12px 35px #0002}.group-title{font-weight:750;margin:10px 0 4px}.check{display:flex;gap:8px;align-items:center;padding:4px 0}.check input{min-width:auto;flex:none}
-.badge{display:inline-block;padding:3px 7px;border-radius:999px;font-weight:650;font-size:12px;background:#f3f4f6}.badge.ev4{background:#111827;color:#fff}.badge.ev3{background:#dcfce7;color:#166534}.badge.ev2{background:#cffafe;color:#155e75}.badge.hy4{background:#f3e8ff;color:#7e22ce}.badge.hy3{background:#dbeafe;color:#1d4ed8}.badge.hy1{background:#e0e7ff;color:#3730a3}.badge.ice{background:#fee2e2;color:#991b1b}.badge.moto{background:#ffedd5;color:#9a3412}.badge.bio{background:#f5e8db;color:#78350f}
-.footer,.muted{color:var(--muted);font-size:12px}.footer{margin-top:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.error{display:none;padding:14px;margin-bottom:10px;border-radius:10px;background:#fee2e2;color:var(--danger)}
-dialog{width:min(1080px,96vw);max-height:92vh;border:0;border-radius:16px;padding:0;box-shadow:0 22px 80px #0005}dialog::backdrop{background:#11182788}.modal-head{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:16px 18px;display:flex;justify-content:space-between;gap:12px}.modal-head h2{margin:0}.modal-body{padding:16px 18px 22px}.gallery{display:flex;gap:10px;overflow:auto;margin-bottom:18px}.gallery figure{margin:0;min-width:min(380px,80vw)}.gallery img{width:100%;height:240px;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:#eee}.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.panel{border:1px solid var(--line);border-radius:12px;padding:12px}.panel h3{margin:0 0 8px;font-size:15px}.kv{display:grid;grid-template-columns:minmax(110px,42%) 1fr;gap:6px 10px;padding:4px 0;border-bottom:1px solid #f1f5f9}.kv:last-child{border:0}.k{color:var(--muted)}.v{text-align:right}.rowline{padding:7px 0;border-bottom:1px solid #f1f5f9}.rowline:last-child{border:0}
-@media(max-width:700px){.wrap{padding:10px}input#search{min-width:100%}.gallery img{height:190px}.modal-body,.modal-head{padding:12px}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Vehicle Performance Database</title>
+
+  <style>
+    html,body{
+      margin:0;
+      min-height:100%;
+      background:#f4f6f8;
+      color:#101828;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    }
+
+    #boot{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+      box-sizing:border-box;
+    }
+
+    .boot-card{
+      text-align:center;
+      max-width:520px;
+    }
+
+    .boot-title{
+      font-size:20px;
+      font-weight:750;
+      margin-bottom:8px;
+    }
+
+    .boot-status{
+      color:#667085;
+      font-size:14px;
+    }
+
+    button{
+      margin-top:16px;
+      padding:8px 14px;
+      border:1px solid #d0d5dd;
+      border-radius:8px;
+      background:white;
+      font:inherit;
+    }
+  </style>
 </head>
+
 <body>
-<div class="wrap"><h1 id="title">Vehicle Performance Benchmarks</h1><div class="sub"><span class="live">● LIVE DATABASE</span> · <span id="subtitle">Loading…</span> · <span id="updated"></span></div><div id="error" class="error"></div>
-<div class="toolbar"><input id="search" type="search" placeholder="Search vehicles and properties…"><div id="filters" class="filters"></div><select id="market" style="display:none" title="Price market"></select><details class="columns"><summary>Columns</summary><div id="columnPop" class="column-pop"></div></details><button id="reset">Reset</button><button id="csv">Export CSV</button></div>
-<div class="table-card"><div class="table-scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div></div><div class="footer"><span id="count"></span><span>Properties, units, prices, relations and external galleries load live from Supabase.</span></div></div>
-<dialog id="detailDialog"><div class="modal-head"><div><h2 id="detailTitle"></h2><div id="detailSub" class="muted"></div></div><button id="closeDetail">×</button></div><div class="modal-body" id="detailBody"></div></dialog>
+
+<div id="boot">
+  <div class="boot-card">
+    <div class="boot-title">Vehicle Performance Database</div>
+    <div id="bootStatus" class="boot-status">Loading application…</div>
+    <button id="retry" hidden>Retry</button>
+  </div>
+</div>
+
 <script>
-const U="https://exnemncgdilpmjqsnkpg.supabase.co",K="sb_publishable_kq78fMuPqd_9rqasLSw_pw_LvFAVhEn",N=1000;
-let S={config:{},vehicles:[],objects:[],entities:[],units:[],properties:[],values:[],links:[],relations:[],relationTypes:[],prices:[],priceTypes:[]},M={},sortKey="",sortDir="asc",filters={},marketId=null;let hidden=new Set(JSON.parse(localStorage.getItem("vehicle-db-hidden-v1")||"[]"));const $=x=>document.getElementById(x);
-async function all(q){let a=[],s=0;for(;;){const r=await fetch(`${U}/rest/v1/${q}`,{headers:{apikey:K,Accept:"application/json",Range:`${s}-${s+N-1}`},cache:"no-store"});if(!r.ok)throw new Error(`${q}: ${r.status} ${await r.text()}`);const b=await r.json();a.push(...b);if(b.length<N)return a;s+=N}}
-function maps(){M.o=new Map(S.objects.map(x=>[+x.id,x]));M.e=new Map(S.entities.map(x=>[+x.object_id,x]));M.u=new Map(S.units.map(x=>[+x.id,x]));M.p=new Map(S.properties.map(x=>[+x.id,x]));M.pn=new Map(S.properties.map(x=>[x.property_name,x]));M.rt=new Map(S.relationTypes.map(x=>[+x.id,x]));M.pt=new Map(S.priceTypes.map(x=>[+x.id,x]));M.v=new Map(S.vehicles.map(x=>[+x.id,x]));M.val=new Map();M.lnk=new Map();M.pr=new Map();for(const x of S.values){if(!M.val.has(+x.object_id))M.val.set(+x.object_id,[]);M.val.get(+x.object_id).push(x)}for(const x of S.links){if(x.object_id==null)continue;if(!M.lnk.has(+x.object_id))M.lnk.set(+x.object_id,[]);M.lnk.get(+x.object_id).push(x)}for(const x of S.prices){if(!M.pr.has(+x.object_id))M.pr.set(+x.object_id,[]);M.pr.get(+x.object_id).push(x)}}
-function cv(oid,p){return(M.val.get(+oid)||[]).find(x=>+x.property_id===+p.id&&x.is_primary&&!x.valid_to)||null}function rv(x){if(!x)return null;if(x.value_number!=null)return+x.value_number;if(x.value_text!=null)return x.value_text;if(x.value_boolean!=null)return!!x.value_boolean;if(x.value_object_id!=null)return+x.value_object_id;if(x.value_date!=null)return x.value_date;return x.value_json}
-function dv(x,p,full=false){if(!x)return"—";if(p.value_type==="object"){const id=+x.value_object_id;return full?(M.e.get(id)?.name||M.o.get(id)?.label||`#${id}`):(M.o.get(id)?.label||M.e.get(id)?.name||`#${id}`)}if(p.value_type==="number"){const n=+x.value_number,d=p.decimals==null?2:+p.decimals;return Number.isFinite(n)?n.toLocaleString("en-US",{maximumFractionDigits:d}):"—"}if(p.value_type==="boolean")return x.value_boolean?"Yes":"No";if(p.value_type==="json")return JSON.stringify(x.value_json);return String(rv(x)??"—")}function us(p,x=null){return M.u.get(+(x?.unit_id??p.canonical_unit_id))?.symbol||""}
-function pc(s=""){if(s.includes("EV · 4-motor"))return"ev4";if(s.includes("EV · 3-motor"))return"ev3";if(s.includes("EV · 2-motor"))return"ev2";if(s.includes("Hybrid · 4-motor"))return"hy4";if(s.includes("Hybrid · 3-motor"))return"hy3";if(s.includes("Hybrid · 1-motor"))return"hy1";if(s.includes("Motorcycle"))return"moto";if(s.includes("Biological"))return"bio";if(s.includes("ICE"))return"ice";return""}
-function fields(ignore=false){let a=[{key:"manufacturer",label:"Make",group:"Identity",sortable:true},{key:"model",label:"Model",group:"Identity",sortable:true}];if(S.vehicles.some(v=>v.year!=null))a.push({key:"year",label:"Year",group:"Identity",sortable:true});if(S.vehicles.some(v=>v.variant))a.push({key:"variant",label:"Variant",group:"Identity",sortable:true});a.push(...S.properties.filter(p=>p.active&&p.show_in_table&&p.property_name!=="manufacturer").sort((a,b)=>a.sort_order-b.sort_order).map(p=>({key:`prop:${p.property_name}`,label:p.display_name,group:p.category||"Other",property:p,sortable:p.sortable})));if(S.prices.length)a.push({key:"price",label:"Price",group:"Price",sortable:true});return ignore?a:a.filter(x=>!hidden.has(x.key))}
-function bp(id){const a=(M.pr.get(+id)||[]).filter(x=>!x.valid_to);if(!a.length)return null;return a.find(x=>+x.market_object_id===+marketId)||a.find(x=>+x.market_object_id===+S.config.default_market_object_id)||a[0]}function fp(p){if(!p)return"—";const u=M.u.get(+p.currency_unit_id),n=+p.amount;if(u?.symbol==="HUF"){if(n>=1e9)return(n/1e9).toLocaleString("en-US",{maximumFractionDigits:2})+" B Ft";if(n>=1e6)return(n/1e6).toLocaleString("en-US",{maximumFractionDigits:3})+" M Ft";return Math.round(n).toLocaleString("en-US")+" Ft"}return n.toLocaleString("en-US",{maximumFractionDigits:2})+" "+(u?.symbol||"")}
-function fv(v,f,sort=false){if(f.key==="model")return v.model||"";if(f.key==="year")return v.year??null;if(f.key==="variant")return v.variant||"";if(f.key==="manufacturer"){const p=M.pn.get("manufacturer"),x=p?cv(v.id,p):null;return sort?(M.o.get(+x?.value_object_id)?.label||"").toLowerCase():x}if(f.key==="price"){const p=bp(v.id);return sort?(p?+p.amount:null):p}const x=f.property?cv(v.id,f.property):null;if(sort&&f.property?.value_type==="object")return(M.o.get(+rv(x))?.label||"").toLowerCase();return sort?rv(x):x}
-function rows(){const q=$("search").value.trim().toLowerCase(),props=S.properties.filter(p=>p.active);return S.vehicles.filter(v=>{for(const[k,w]of Object.entries(filters)){if(!w)continue;const p=M.pn.get(k);if(p&&dv(cv(v.id,p),p)!==w)return false}if(!q)return true;if([v.model,v.year,v.variant,M.o.get(+v.id)?.label].some(x=>String(x??"").toLowerCase().includes(q)))return true;return props.some(p=>dv(cv(v.id,p),p,true).toLowerCase().includes(q))}).sort((a,b)=>{const f=fields(true).find(x=>x.key===sortKey);if(!f)return 0;const A=fv(a,f,true),B=fv(b,f,true);if(A==null&&B==null)return 0;if(A==null)return 1;if(B==null)return-1;if(A<B)return sortDir==="asc"?-1:1;if(A>B)return sortDir==="asc"?1:-1;return 0})}
-function head(){const tr=document.createElement("tr");for(const f of fields()){const th=document.createElement("th"),sym=f.property?us(f.property):"";th.innerHTML=`${esc(f.label)}${sym?` <span class="muted">(${esc(sym)})</span>`:""}${f.key===sortKey?` ${sortDir==="asc"?"▲":"▼"}`:""}`;th.onclick=()=>{if(!f.sortable)return;if(sortKey===f.key)sortDir=sortDir==="asc"?"desc":"asc";else{sortKey=f.key;sortDir="asc"}render()};tr.appendChild(th)}const h=$("tbl").querySelector("thead");h.innerHTML="";h.appendChild(tr)}
-function render(){head();const d=rows(),fs=fields(),tb=$("tbl").querySelector("tbody");tb.innerHTML="";for(const v of d){const tr=document.createElement("tr");tr.onclick=()=>detail(v.id);for(const f of fs){const td=document.createElement("td"),x=fv(v,f);td.className=(f.key==="manufacturer"||f.key==="model"||f.key==="variant")?"identity"+(f.key==="model"?" model":""):(f.property?.value_type==="number"||f.key==="year"||f.key==="price")?"num":"text";if(f.key==="manufacturer"){const p=M.pn.get("manufacturer");td.textContent=p?dv(x,p):"—";if(x?.value_object_id)td.title=M.e.get(+x.value_object_id)?.name||""}else if(f.key==="model")td.textContent=v.model||"—";else if(f.key==="year")td.textContent=v.year??"—";else if(f.key==="variant")td.textContent=v.variant||"—";else if(f.key==="price"){td.textContent=fp(x);if(x)td.title=[M.o.get(+x.market_object_id)?.label,M.pt.get(+x.price_type_id)?.name,x.tax_status].filter(Boolean).join(" · ")}else{const t=dv(x,f.property);if(f.property.property_name==="powertrain"&&t!=="—"){const s=document.createElement("span");s.className=`badge ${pc(t)}`;s.textContent=t;td.appendChild(s)}else td.textContent=t}tr.appendChild(td)}tb.appendChild(tr)}$("count").textContent=`Showing ${d.length} of ${S.vehicles.length} vehicles · ${fs.length} visible columns`}
-function filterUI(){const h=$("filters");h.innerHTML="";for(const p of S.properties.filter(x=>x.active&&x.filterable).sort((a,b)=>a.sort_order-b.sort_order)){const a=[...new Set(S.vehicles.map(v=>dv(cv(v.id,p),p)).filter(x=>x&&x!=="—"))].sort();if(a.length<2||a.length>150)continue;const s=document.createElement("select");s.innerHTML=`<option value="">All ${esc(p.display_name)}</option>`;for(const x of a){const o=document.createElement("option");o.value=x;o.textContent=x;s.appendChild(o)}s.onchange=()=>{filters[p.property_name]=s.value;render()};h.appendChild(s)}}function marketUI(){const s=$("market"),ids=[...new Set(S.prices.filter(x=>!x.valid_to&&x.market_object_id!=null).map(x=>+x.market_object_id))];marketId=+S.config.default_market_object_id||ids[0]||null;s.innerHTML="";for(const id of ids){const o=document.createElement("option");o.value=id;o.textContent=`Price: ${M.o.get(id)?.label||("#"+id)}`;o.selected=id===marketId;s.appendChild(o)}s.style.display=ids.length>1?"":"none";s.onchange=()=>{marketId=+s.value;render()}}
-function colUI(){const h=$("columnPop");h.innerHTML="";const a=fields(true),gs=[...new Set(a.map(x=>x.group||"Other"))];for(const g of gs){const t=document.createElement("div");t.className="group-title";t.textContent=g;h.appendChild(t);for(const f of a.filter(x=>(x.group||"Other")===g)){const l=document.createElement("label");l.className="check";const c=document.createElement("input");c.type="checkbox";c.checked=!hidden.has(f.key);c.onchange=()=>{c.checked?hidden.delete(f.key):hidden.add(f.key);localStorage.setItem("vehicle-db-hidden-v1",JSON.stringify([...hidden]));render()};const s=document.createElement("span"),u=f.property?us(f.property):"";s.textContent=u?`${f.label} (${u})`:f.label;l.append(c,s);h.appendChild(l)}}}
-function panel(title){const p=document.createElement("section");p.className="panel";const h=document.createElement("h3");h.textContent=title;p.appendChild(h);return p}function kv(p,k,v){const r=document.createElement("div");r.className="kv";const a=document.createElement("div"),b=document.createElement("div");a.className="k";b.className="v";a.textContent=k;b.textContent=v;r.append(a,b);p.appendChild(r)}
-function detail(id){const v=M.v.get(+id),o=M.o.get(+id);if(!v)return;$("detailTitle").textContent=o?.label||v.model;$("detailSub").textContent=[v.year,v.variant].filter(Boolean).join(" · ");const b=$("detailBody");b.innerHTML="";const ls=(M.lnk.get(+id)||[]).sort((a,b)=>(a.sort_order||100)-(b.sort_order||100)),imgs=ls.filter(x=>x.role==="image");if(imgs.length){const g=document.createElement("div");g.className="gallery";for(const x of imgs){const f=document.createElement("figure"),im=document.createElement("img");im.src=x.url;im.loading="lazy";im.alt=x.caption||x.title||o?.label||"image";im.onerror=()=>f.style.display="none";f.appendChild(im);if(x.caption||x.title){const c=document.createElement("figcaption");c.textContent=x.caption||x.title;f.appendChild(c)}g.appendChild(f)}b.appendChild(g)}const grid=document.createElement("div");grid.className="detail-grid";const ps=S.properties.filter(p=>p.active).sort((a,b)=>a.sort_order-b.sort_order),gs=[...new Set(ps.map(p=>p.category||"Other"))];for(const g of gs){const use=ps.filter(p=>(p.category||"Other")===g&&cv(id,p));if(!use.length)continue;const p=panel(g);for(const x of use){const z=cv(id,x),u=us(x,z);kv(p,x.display_name,dv(z,x,true)+(u?` ${u}`:""))}grid.appendChild(p)}const pr=(M.pr.get(+id)||[]).filter(x=>!x.valid_to);if(pr.length){const p=panel("Prices");for(const x of pr){const r=document.createElement("div");r.className="rowline";r.innerHTML=`<strong>${esc(fp(x))}</strong><br><span class="muted">${esc(M.o.get(+x.market_object_id)?.label||"Unspecified market")} · ${esc(M.pt.get(+x.price_type_id)?.name||"price")} · tax: ${esc(x.tax_status||"unknown")}</span>`;p.appendChild(r)}grid.appendChild(p)}const rs=S.relations.filter(x=>+x.from_object_id===+id||+x.to_object_id===+id);if(rs.length){const p=panel("Relations / compatibility");for(const x of rs){const out=+x.from_object_id===+id,t=M.rt.get(+x.relation_type_id),other=out?+x.to_object_id:+x.from_object_id,label=out?(t?.name||"related_to"):(t?.inverse_name||("inverse "+(t?.name||"relation")));const r=document.createElement("div");r.className="rowline";r.innerHTML=`<strong>${esc(label.replaceAll("_"," "))}</strong> → ${esc(M.o.get(other)?.label||("#"+other))}${x.fitment_status?` <span class="muted">(${esc(x.fitment_status)})</span>`:""}${x.note?`<br><span class="muted">${esc(x.note)}</span>`:""}`;p.appendChild(r)}grid.appendChild(p)}const ext=ls.filter(x=>x.role!=="image");if(ext.length){const p=panel("External links");for(const x of ext){const r=document.createElement("div");r.className="rowline";const a=document.createElement("a");a.href=x.url;a.target="_blank";a.rel="noopener noreferrer";a.textContent=x.title||x.role||"link";r.appendChild(a);p.appendChild(r)}grid.appendChild(p)}b.appendChild(grid);$("detailDialog").showModal()}
-function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-$("closeDetail").onclick=()=>$("detailDialog").close();$("detailDialog").onclick=e=>{if(e.target===$("detailDialog"))$("detailDialog").close()};$("search").oninput=render;$("reset").onclick=()=>{$("search").value="";filters={};document.querySelectorAll("#filters select").forEach(x=>x.value="");hidden.clear();localStorage.removeItem("vehicle-db-hidden-v1");const p=M.p.get(+S.config.default_sort_property_id);sortKey=p?`prop:${p.property_name}`:"model";sortDir=S.config.default_sort_direction||"asc";colUI();render()};
-$("csv").onclick=()=>{const fs=fields(),d=rows(),q=x=>`"${String(x??"").replaceAll('"','""')}"`,h=fs.map(f=>q(f.property&&us(f.property)?`${f.label} (${us(f.property)})`:f.label)),ls=d.map(v=>fs.map(f=>{const x=fv(v,f);if(f.key==="manufacturer"){const p=M.pn.get("manufacturer");return q(p?dv(x,p):"")}if(f.key==="model")return q(v.model);if(f.key==="year")return q(v.year);if(f.key==="variant")return q(v.variant);if(f.key==="price")return q(x?`${x.amount} ${M.u.get(+x.currency_unit_id)?.symbol||""}`:"");return q(f.property?dv(x,f.property):"")}).join(","));const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([[h.join(","),...ls].join("\n")],{type:"text/csv"}));a.download="vehicle-database.csv";a.click()};
-async function load(){try{const z=await Promise.all([all("catalog_site_config?select=*"),all("vehicles?select=id,model,year,variant,updated_at&order=id.asc"),all("objects?select=*&deleted_at=is.null&order=id.asc"),all("entities?select=*"),all("units?select=*"),all("properties?select=*&active=eq.true&order=sort_order.asc"),all("property_values?select=*&is_primary=eq.true&valid_to=is.null"),all("links?select=*&order=sort_order.asc"),all("relations?select=*&valid_to=is.null"),all("relation_types?select=*"),all("prices?select=*&valid_to=is.null"),all("price_types?select=*")]);[S.config,S.vehicles,S.objects,S.entities,S.units,S.properties,S.values,S.links,S.relations,S.relationTypes,S.prices,S.priceTypes]=[z[0][0]||{},...z.slice(1)];maps();const p=M.p.get(+S.config.default_sort_property_id);sortKey=p?`prop:${p.property_name}`:"model";sortDir=S.config.default_sort_direction||"asc";$("title").textContent=S.config.title||"Vehicle Performance Benchmarks";document.title=$("title").textContent;$("subtitle").textContent=S.config.subtitle||"Live vehicle database.";const t=S.vehicles.map(v=>Date.parse(v.updated_at)).filter(Number.isFinite);$("updated").textContent=t.length?`Updated ${new Date(Math.max(...t)).toLocaleString()}`:"";filterUI();marketUI();colUI();render()}catch(e){$("error").style.display="block";$("error").textContent="Could not load database: "+e.message;$("subtitle").textContent="Database unavailable";console.error(e)}}load();
+(() => {
+  "use strict";
+
+  const SUPABASE_URL =
+    "https://exnemncgdilpmjqsnkpg.supabase.co";
+
+  const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_kq78fMuPqd_9rqasLSw_pw_LvFAVhEn";
+
+  const CACHE_KEY =
+    "vehicle-performance-db:last-good-release:v1";
+
+  const status = document.getElementById("bootStatus");
+  const retry = document.getElementById("retry");
+
+  function setStatus(text) {
+    status.textContent = text;
+  }
+
+  function bytesToHex(buffer) {
+    return [...new Uint8Array(buffer)]
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  async function verifyRelease(release) {
+    if (!release || typeof release.html !== "string") {
+      throw new Error("Invalid release.");
+    }
+
+    const bytes = new TextEncoder().encode(release.html);
+
+    if (
+      Number(release.size_bytes) !== bytes.length
+    ) {
+      throw new Error("Release size verification failed.");
+    }
+
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      bytes
+    );
+
+    const actualHash = bytesToHex(digest);
+
+    if (actualHash !== release.sha256) {
+      throw new Error("Release checksum verification failed.");
+    }
+
+    return release;
+  }
+
+  async function fetchCurrentRelease() {
+    const url = new URL(
+      SUPABASE_URL + "/rest/v1/app_releases"
+    );
+
+    url.searchParams.set(
+      "select",
+      "version,html,sha256,size_bytes,created_at"
+    );
+
+    url.searchParams.set(
+      "status",
+      "eq.ready"
+    );
+
+    url.searchParams.set(
+      "limit",
+      "1"
+    );
+
+    const response = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Accept: "application/json"
+      },
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        "Supabase returned HTTP " + response.status
+      );
+    }
+
+    const releases = await response.json();
+
+    if (!Array.isArray(releases) || releases.length !== 1) {
+      throw new Error("No ready application release.");
+    }
+
+    return releases[0];
+  }
+
+  function saveLastGood(release) {
+    try {
+      localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify(release)
+      );
+    } catch (error) {
+      console.warn(
+        "Unable to cache application release:",
+        error
+      );
+    }
+  }
+
+  function loadCachedRelease() {
+    const value = localStorage.getItem(CACHE_KEY);
+
+    if (!value) {
+      throw new Error("No cached application release.");
+    }
+
+    return JSON.parse(value);
+  }
+
+  function launch(release) {
+    document.open();
+    document.write(release.html);
+    document.close();
+  }
+
+  async function boot() {
+    retry.hidden = true;
+
+    try {
+      setStatus("Checking current release…");
+
+      const release =
+        await verifyRelease(
+          await fetchCurrentRelease()
+        );
+
+      setStatus(
+        "Starting " + release.version + "…"
+      );
+
+      saveLastGood(release);
+      launch(release);
+
+    } catch (onlineError) {
+
+      console.error(
+        "Current release failed:",
+        onlineError
+      );
+
+      try {
+        setStatus(
+          "Online release unavailable. Loading last known-good version…"
+        );
+
+        const cached =
+          await verifyRelease(
+            loadCachedRelease()
+          );
+
+        launch(cached);
+
+      } catch (cacheError) {
+
+        console.error(
+          "Cached release failed:",
+          cacheError
+        );
+
+        setStatus(
+          "Application could not be loaded. " +
+          onlineError.message
+        );
+
+        retry.hidden = false;
+      }
+    }
+  }
+
+  retry.addEventListener("click", boot);
+
+  boot();
+})();
 </script>
+
 </body>
 </html>
